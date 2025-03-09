@@ -1,1 +1,61 @@
 
+#include <Otto.h>  
+
+// Define servo motor pins  
+#define LeftLeg 2  
+#define RightLeg 3  
+#define LeftFoot 4  
+#define RightFoot 5  
+
+// Define ultrasonic sensor pins  
+#define TrigPin 8  
+#define EchoPin 9  
+
+// Define buzzer pin  
+#define Buzzer 13  
+
+Otto chinraasu;  // Initialize Otto object  
+
+void setup() {  
+    Serial.begin(9600);  
+    chinraasu.init(LeftLeg, RightLeg, LeftFoot, RightFoot, true, Buzzer);  
+    pinMode(TrigPin, OUTPUT);  
+    pinMode(EchoPin, INPUT);  
+    chinraasu.home(); // Set robot to default position  
+}  
+
+// Function to measure distance from ultrasonic sensor  
+int getDistance() {  
+    digitalWrite(TrigPin, LOW);  
+    delayMicroseconds(2);  
+    digitalWrite(TrigPin, HIGH);  
+    delayMicroseconds(10);  
+    digitalWrite(TrigPin, LOW);  
+    int duration = pulseIn(EchoPin, HIGH);  
+    int distance = duration * 0.034 / 2;  
+    return distance;  
+}  
+
+void loop() {  
+    int distance = getDistance();  
+    Serial.println(distance);  
+    
+    if (distance < 15) {  
+        chinraasu.turn(1, 1000, 1);  // Turn right if obstacle detected  
+    } else {  
+        chinraasu.walk(1, 1000, 1);  // Walk forward  
+    }  
+
+    // Dance Mode Activation  
+    if (Serial.available() > 0) {  
+        char command = Serial.read();  
+        if (command == 'd') {  
+            for (int i = 0; i < 3; i++) {  
+                chinraasu.moonwalker(1, 1000, 25, 1);  
+                chinraasu.moonwalker(1, 1000, 25, -1);  
+                chinraasu.swing(1, 1000, 25);  
+                chinraasu.jitter(1, 1000, 25);  
+            }  
+        }  
+    }  
+}
